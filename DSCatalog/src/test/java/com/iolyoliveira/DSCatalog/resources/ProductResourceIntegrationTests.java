@@ -3,6 +3,7 @@ package com.iolyoliveira.DSCatalog.resources;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iolyoliveira.DSCatalog.dto.ProductDTO;
 import com.iolyoliveira.DSCatalog.tests.Factory;
+import com.iolyoliveira.DSCatalog.tests.TokenUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +30,14 @@ public class ProductResourceIntegrationTests  {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TokenUtil tokenUtil;
+
     private Long existingId;
     private Long nonExistingId;
     private Long countTotalProducts;
     private ProductDTO productDTO;
+    private String username, password, bearerToken;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -40,6 +45,9 @@ public class ProductResourceIntegrationTests  {
         nonExistingId = 100000L;
         countTotalProducts = 25L;
         productDTO = Factory.createProductDTO();
+        username = "maria@gmail.com";
+        password = "123456";
+        bearerToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
     }
 
     @Test
@@ -61,6 +69,7 @@ public class ProductResourceIntegrationTests  {
         String expectedDescription = productDTO.getDescription();
 
         ResultActions result = mockMvc.perform(put("/products/{id}", existingId)
+                .header("Authorization", "Bearer " + bearerToken)
                 .content(jsonBody)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON));
@@ -75,6 +84,7 @@ public class ProductResourceIntegrationTests  {
         String jsonBody = objectMapper.writeValueAsString(productDTO);
 
         ResultActions result = mockMvc.perform(put("/products/{id}", nonExistingId)
+                .header("Authorization", "Bearer " + bearerToken)
                 .content(jsonBody)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON));
